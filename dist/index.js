@@ -12930,7 +12930,8 @@ exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(1314);
 async function run() {
-    const version = core.getInput('version');
+    const versionInput = core.getInput('version');
+    const version = versionInput || undefined;
     const { name, tag_name } = await (0, utils_1.getVscodeRelease)(version);
     const { electron, node, chromium } = await (0, utils_1.getVersionsForVscode)(tag_name);
     core.setOutput('vscode-version-name', name);
@@ -12992,18 +12993,23 @@ const ELECTRON_REPO = {
     repo: 'electron',
 };
 async function getFile(repo, path, ref) {
-    const hasBodyText = (value) => typeof value.body_text === 'string';
-    const { data, status } = await repos.getContent({
-        ...repo,
-        mediaType: {
-            format: 'text',
-        },
-        path,
-        ref,
-    });
-    if (status !== 200 || !hasBodyText(data))
-        return null;
-    return data.body_text;
+    const hasContent = (value) => typeof value.content === 'string';
+    try {
+        const { data, status } = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
+            ...repo,
+            path,
+            ref,
+        });
+        if (status !== 200 || !hasContent(data))
+            return null;
+        const buff = Buffer.from(data.content, 'base64');
+        const text = buff.toString('ascii');
+        return text;
+    }
+    catch (error) {
+        console.log(error);
+    }
+    return null;
 }
 exports.getFile = getFile;
 async function getElectronVersion(version) {
@@ -13019,7 +13025,7 @@ async function getElectronVersion(version) {
 exports.getElectronVersion = getElectronVersion;
 async function getChromiumVersion(electronVersion) {
     let chromiumVersion = 'Unknown';
-    const file = await getFile(ELECTRON_REPO, `v${electronVersion}/DEPS`);
+    const file = await getFile(ELECTRON_REPO, `DEPS`, `v${electronVersion}`);
     if (!file)
         return chromiumVersion;
     const version = file.match(/'chromium_version':\s+'(\d.*)'/);
@@ -13030,7 +13036,7 @@ async function getChromiumVersion(electronVersion) {
 exports.getChromiumVersion = getChromiumVersion;
 async function getNodeVersion(electronVersion) {
     let nodeVersion = 'Unknown';
-    const file = await getFile(ELECTRON_REPO, `v${electronVersion}/DEPS`);
+    const file = await getFile(ELECTRON_REPO, `DEPS`, `v${electronVersion}`);
     if (!file)
         return nodeVersion;
     const version = file.match(/'node_version':\s+'(v\d.*)'/);
@@ -13060,7 +13066,7 @@ async function getVscodeReleases(cachedVersions) {
     return releases.sort((a, b) => semver_1.default.rcompare(a.tag_name, b.tag_name));
 }
 exports.getVscodeReleases = getVscodeReleases;
-async function getVscodeRelease(version) {
+async function getVscodeRelease(version = 'latest') {
     const normalizedVersion = version.toLowerCase();
     const shouldGetLatest = normalizedVersion === 'latest';
     const action = shouldGetLatest ? 'getLatestRelease' : 'getReleaseByTag';
@@ -13073,7 +13079,7 @@ async function getVscodeRelease(version) {
 }
 exports.getVscodeRelease = getVscodeRelease;
 async function getVersionsForVscode(version) {
-    console.log(`Get versions for ${version}`);
+    console.log(`Get versions for VSCode ${version}`);
     const electron = await getElectronVersion(version);
     const [chromium, node] = await Promise.all([
         getChromiumVersion(electron),

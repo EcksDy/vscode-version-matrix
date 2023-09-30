@@ -50,8 +50,8 @@ jobs:
       - name: Print Output
         id: output
         run: |
-          echo "${{ steps.test-action.outputs.vscode-version-name }}"
-          echo "${{ steps.test-action.outputs.vscode-version }}"
-          echo "${{ steps.test-action.outputs.electron-version }}"
-          echo "${{ steps.test-action.outputs.node-version }}"
-          echo "${{ steps.test-action.outputs.chromium-version }}"
+          echo "vscode-version-name = ${{ steps.test-action.outputs.vscode-version-name }}"
+          echo "vscode-version = ${{ steps.test-action.outputs.vscode-version }}"
+          echo "electron-version = ${{ steps.test-action.outputs.electron-version }}"
+          echo "node-version = ${{ steps.test-action.outputs.node-version }}"
+          echo "chromium-version = ${{ steps.test-action.outputs.chromium-version }}"

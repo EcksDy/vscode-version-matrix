@@ -2,7 +2,8 @@ import * as core from '@actions/core';
 import { getVersionsForVscode, getVscodeRelease } from './utils';
 
 export async function run(): Promise<void> {
-  const version: string = core.getInput('version');
+  const versionInput: string = core.getInput('version');
+  const version = versionInput || undefined;
 
   const { name, tag_name } = await getVscodeRelease(version);
   const { electron, node, chromium } = await getVersionsForVscode(tag_name);
