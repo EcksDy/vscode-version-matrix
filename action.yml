@@ -1,18 +1,27 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: VSCode Version Matrix
+description: Retrieves VSCode's dependency versions (Electron, Node, and Chromium)
+author: EcksDy
 
-# Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  token:
+    description: GitHub token to access GitHub's API
     required: true
-    default: '1000'
+  version:
+    description: VSCode version to retrieve dependency versions for
+    required: false
+    default: latest
 
-# Define your outputs here.
 outputs:
-  time:
-    description: 'Your output description here'
+  vscode-version-name:
+    description: The name of the VSCode release, defaults to version if not found
+  vscode-version:
+    description: Same as input version, but with the latest tag resolved
+  electron-version:
+    description: Electron version used by VSCode
+  node-version:
+    description: Node version used by VSCode
+  chromium-version:
+    description: Chromium version used by VSCode
 
 runs:
   using: node20

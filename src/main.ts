@@ -1,26 +1,15 @@
-import * as core from '@actions/core'
-import { wait } from './wait'
+import * as core from '@actions/core';
+import { getVersionsForVscode, getVscodeRelease } from './utils';
 
-/**
- * The main function for the action.
- * @returns {Promise<void>} Resolves when the action is complete.
- */
 export async function run(): Promise<void> {
-  try {
-    const ms: string = core.getInput('milliseconds')
+  const version: string = core.getInput('version');
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+  const { name, tag_name } = await getVscodeRelease(version);
+  const { electron, node, chromium } = await getVersionsForVscode(tag_name);
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    // Fail the workflow run if an error occurs
-    if (error instanceof Error) core.setFailed(error.message)
-  }
+  core.setOutput('vscode-version-name', name);
+  core.setOutput('vscode-version', tag_name);
+  core.setOutput('electron-version', electron);
+  core.setOutput('node-version', node);
+  core.setOutput('chromium-version', chromium);
 }
