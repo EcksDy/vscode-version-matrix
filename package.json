@@ -32,7 +32,9 @@
     "format:check": "prettier --check **/*.ts",
     "package": "ncc build src/index.ts --license licenses.txt",
     "package:watch": "npm run package -- --watch",
-    "all": "npm run format:write && npm run package"
+    "all": "npm run format:write && npm run package",
+    "build": "ncc build src/cache/generate.ts --license licenses.txt",
+    "generate-cache": "npm run build && node dist/index.js"
   },
   "license": "MIT",
   "dependencies": {

@@ -3,7 +3,7 @@ import * as github from '@actions/github';
 import semver from 'semver';
 import { Release, Repo } from './interfaces';
 
-const token = core.getInput('token');
+const token = (core.getInput('token') || process.env.GITHUB_TOKEN) ?? '';
 const octokit = github.getOctokit(token);
 const { repos } = octokit.rest;
 const VSCODE_REPO = {
@@ -98,7 +98,7 @@ export async function getVscodeReleases(cachedVersions?: string[]) {
   return releases.sort((a, b) => semver.rcompare(a.tag_name, b.tag_name));
 }
 
-export async function getVscodeRelease(version: string = 'latest') {
+export async function getVscodeRelease(version: string) {
   const normalizedVersion = version.toLowerCase();
   const shouldGetLatest = normalizedVersion === 'latest';
   const action = shouldGetLatest ? 'getLatestRelease' : 'getReleaseByTag';

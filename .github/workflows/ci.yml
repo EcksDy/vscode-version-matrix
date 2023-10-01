@@ -52,6 +52,7 @@ jobs:
         run: |
           echo "vscode-version-name = ${{ steps.test-action.outputs.vscode-version-name }}"
           echo "vscode-version = ${{ steps.test-action.outputs.vscode-version }}"
+          echo "released-at = ${{ steps.test-action.outputs.released-at }}"
           echo "electron-version = ${{ steps.test-action.outputs.electron-version }}"
           echo "node-version = ${{ steps.test-action.outputs.node-version }}"
           echo "chromium-version = ${{ steps.test-action.outputs.chromium-version }}"

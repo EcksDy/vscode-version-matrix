@@ -1,0 +1,38 @@
+name: Update cache
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  update-cache:
+    name: Update cache
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        id: npm-ci
+        run: npm ci
+
+      - name: Generate cache
+        id: generate-cache
+        run: npm run generate-cache
+
+      - name: Commit cache
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Update version cache
+          commit_options: '--no-verify --signoff'
+          file_pattern: './src/cache/index.json'
+          branch: 'main'

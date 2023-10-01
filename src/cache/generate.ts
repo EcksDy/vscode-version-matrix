@@ -1,12 +1,20 @@
+import { writeFile } from 'fs/promises';
+import path from 'path';
 import semver from 'semver';
 import { VsCodeVersions } from '../interfaces';
 import { getVersionsForVscode, getVscodeReleases } from '../utils';
 import cache from './index.json';
 
-async function generateCache() {
+(async function generateCache() {
+  console.log(`Generating cache`);
   const versions = await getVersions();
-  // TODO: Write to file and commit in CI
-}
+  console.log(`Generated`);
+
+  const cachePath = path.join(__dirname, `..`, `src`, `cache`, `index.json`);
+  await writeFile(cachePath, JSON.stringify(versions));
+
+  console.log(`Wrote to ${cachePath}`);
+})();
 
 async function getVersions() {
   const cachedVersions = cache.map((vscode: VsCodeVersions) => vscode.version);
@@ -23,6 +31,8 @@ async function getVersions() {
       name,
       created_at,
     });
+
+    console.log(`Added ${tag_name} to cache`);
   }
 
   return versions.sort((a, b) => semver.rcompare(a.version, b.version));

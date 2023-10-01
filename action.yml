@@ -16,6 +16,8 @@ outputs:
     description: The name of the VSCode release, defaults to version if not found
   vscode-version:
     description: Same as input version, but with the latest tag resolved
+  released-at:
+    description: Date of the VSCode release
   electron-version:
     description: Electron version used by VSCode
   node-version:
