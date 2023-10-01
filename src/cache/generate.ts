@@ -6,14 +6,14 @@ import { getVersionsForVscode, getVscodeReleases } from '../utils';
 import cache from './index.json';
 
 (async function generateCache() {
-  console.log(`Generating cache`);
+  console.debug(`Generating cache`);
   const versions = await getVersions();
-  console.log(`Generated`);
+  console.debug(`Generated`);
 
   const cachePath = path.join(__dirname, `..`, `src`, `cache`, `index.json`);
   await writeFile(cachePath, JSON.stringify(versions));
 
-  console.log(`Wrote to ${cachePath}`);
+  console.debug(`Wrote to ${cachePath}`);
 })();
 
 async function getVersions() {
@@ -32,7 +32,7 @@ async function getVersions() {
       created_at,
     });
 
-    console.log(`Added ${tag_name} to cache`);
+    console.debug(`Added ${tag_name} to cache`);
   }
 
   return versions.sort((a, b) => semver.rcompare(a.version, b.version));

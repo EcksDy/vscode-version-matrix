@@ -12931,7 +12931,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const index_json_1 = __importDefault(__nccwpck_require__(136));
+const index_json_1 = __importDefault(__nccwpck_require__(8136));
 const utils_1 = __nccwpck_require__(1314);
 async function run() {
     const versionInput = core.getInput('version');
@@ -12947,8 +12947,11 @@ async function run() {
 exports.run = run;
 async function getVersionFromCache(targetVersion = 'latest') {
     const cachedVersion = index_json_1.default?.find(vscode => vscode.version === targetVersion);
-    if (cachedVersion)
+    if (cachedVersion) {
+        console.debug(`Serve from cache`);
         return cachedVersion;
+    }
+    console.debug(`Getting version from VSCode and Electron repos`);
     const { name, tag_name, created_at } = await (0, utils_1.getVscodeRelease)(targetVersion);
     const { electron, node, chromium, version } = await (0, utils_1.getVersionsForVscode)(tag_name);
     return {
@@ -13026,7 +13029,7 @@ async function getFile(repo, path, ref) {
         return text;
     }
     catch (error) {
-        console.log(error);
+        console.debug(error);
     }
     return null;
 }
@@ -13098,7 +13101,7 @@ async function getVscodeRelease(version) {
 }
 exports.getVscodeRelease = getVscodeRelease;
 async function getVersionsForVscode(version) {
-    console.log(`Get versions for VSCode ${version}`);
+    console.debug(`Get versions for VSCode ${version}`);
     const electron = await getElectronVersion(version);
     const [chromium, node] = await Promise.all([
         getChromiumVersion(electron),
@@ -13252,7 +13255,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 
 /***/ }),
 
-/***/ 136:
+/***/ 8136:
 /***/ ((module) => {
 
 "use strict";

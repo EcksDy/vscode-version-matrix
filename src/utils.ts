@@ -32,7 +32,7 @@ export async function getFile(repo: Repo, path: string, ref?: string): Promise<s
 
     return text;
   } catch (error) {
-    console.log(error);
+    console.debug(error);
   }
   return null;
 }
@@ -115,7 +115,7 @@ export async function getVscodeRelease(version: string) {
 }
 
 export async function getVersionsForVscode(version: string) {
-  console.log(`Get versions for VSCode ${version}`);
+  console.debug(`Get versions for VSCode ${version}`);
   const electron = await getElectronVersion(version);
 
   const [chromium, node] = await Promise.all([
