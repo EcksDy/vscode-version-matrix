@@ -18,7 +18,7 @@ export async function run(): Promise<void> {
 }
 
 async function getVersionFromCache(targetVersion: string = 'latest') {
-  const cachedVersion = cachedVersions?.find(vscode => vscode.version === tag_name);
+  const cachedVersion = cachedVersions?.find(vscode => vscode.version === targetVersion);
   if (cachedVersion) return cachedVersion;
 
   const { name, tag_name, created_at } = await getVscodeRelease(targetVersion);

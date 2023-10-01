@@ -12931,7 +12931,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const index_json_1 = __importDefault(__nccwpck_require__(8136));
+const index_json_1 = __importDefault(__nccwpck_require__(136));
 const utils_1 = __nccwpck_require__(1314);
 async function run() {
     const versionInput = core.getInput('version');
@@ -12946,7 +12946,7 @@ async function run() {
 }
 exports.run = run;
 async function getVersionFromCache(targetVersion = 'latest') {
-    const cachedVersion = index_json_1.default?.find(vscode => vscode.version === tag_name);
+    const cachedVersion = index_json_1.default?.find(vscode => vscode.version === targetVersion);
     if (cachedVersion)
         return cachedVersion;
     const { name, tag_name, created_at } = await (0, utils_1.getVscodeRelease)(targetVersion);
@@ -13252,7 +13252,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 
 /***/ }),
 
-/***/ 8136:
+/***/ 136:
 /***/ ((module) => {
 
 "use strict";
