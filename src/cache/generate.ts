@@ -11,7 +11,7 @@ import cache from './index.json';
   console.debug(`Generated`);
 
   const cachePath = path.join(__dirname, `..`, `src`, `cache`, `index.json`);
-  await writeFile(cachePath, JSON.stringify(versions));
+  await writeFile(cachePath, JSON.stringify(versions, undefined, 2));
 
   console.debug(`Wrote to ${cachePath}`);
 })();
