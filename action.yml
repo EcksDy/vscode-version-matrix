@@ -1,6 +1,9 @@
 name: VSCode Version Matrix
 description: Retrieves VSCode's dependency versions (Electron, Node, and Chromium)
 author: EcksDy
+branding:
+  color: blue
+  icon: code
 
 inputs:
   token:
