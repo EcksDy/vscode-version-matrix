@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.101.2",
+    "electron": "Unknown",
+    "chromium": "Unknown",
+    "node": "Unknown",
+    "name": "May 2025 Recovery 2",
+    "created_at": "2025-06-24T20:22:47Z"
+  },
+  {
     "version": "1.101.1",
     "electron": "Unknown",
     "chromium": "Unknown",
