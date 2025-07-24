@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.102.2",
+    "electron": "Unknown",
+    "chromium": "Unknown",
+    "node": "Unknown",
+    "name": "June 2025 Recovery 2",
+    "created_at": "2025-07-21T12:58:15Z"
+  },
+  {
     "version": "1.102.1",
     "electron": "Unknown",
     "chromium": "Unknown",
