@@ -37,42 +37,178 @@ export async function getFile(repo: Repo, path: string, ref?: string): Promise<s
   return null;
 }
 
+/**
+ * Extraction strategy type - a function that attempts to extract a version string
+ */
+type ExtractionStrategy = () => Promise<string | null>;
+
+/**
+ * Tries multiple extraction strategies in order, returning the first successful result
+ */
+async function tryStrategies(
+  strategies: ExtractionStrategy[],
+  fallbackValue = 'Unknown'
+): Promise<string> {
+  for (let i = 0; i < strategies.length; i++) {
+    try {
+      const result = await strategies[i]();
+      if (result) {
+        console.debug(`Strategy ${i + 1}/${strategies.length} succeeded`);
+        return result;
+      }
+    } catch (error) {
+      console.debug(`Strategy ${i + 1}/${strategies.length} failed:`, error);
+    }
+  }
+  console.debug(`All ${strategies.length} strategies failed, returning: ${fallbackValue}`);
+  return fallbackValue;
+}
+
 export async function getElectronVersion(version: string): Promise<string> {
-  let electronVersion = 'Unknown';
+  const strategies: ExtractionStrategy[] = [
+    // Strategy 1: Extract from package.json (works for all versions including v1.94.0+)
+    async () => {
+      const packageJson = await getFile(VSCODE_REPO, 'package.json', version);
+      if (!packageJson) return null;
 
-  const yarnrc = await getFile(VSCODE_REPO, `.yarnrc`, version);
-  if (!yarnrc) return electronVersion;
+      try {
+        const pkg = JSON.parse(packageJson);
+        const electronVersion = pkg.devDependencies?.electron;
+        if (electronVersion) {
+          console.debug(`Extracted Electron version from package.json: ${electronVersion}`);
+          return electronVersion;
+        }
+      } catch (error) {
+        console.debug('Failed to parse package.json', error);
+      }
+      return null;
+    },
 
-  const target = yarnrc.match(/target "(\d.*)"/);
-  if (target?.[1]) electronVersion = target[1];
+    // Strategy 2: Extract from .yarnrc (legacy, works for v1.0-1.93)
+    async () => {
+      const yarnrc = await getFile(VSCODE_REPO, `.yarnrc`, version);
+      if (!yarnrc) return null;
 
-  return electronVersion;
+      const target = yarnrc.match(/target "(\d.*)"/);
+      if (target?.[1]) {
+        console.debug(`Extracted Electron version from .yarnrc: ${target[1]}`);
+        return target[1];
+      }
+      return null;
+    },
+
+    // Strategy 3: Extract from yarn.lock (legacy fallback)
+    async () => {
+      const yarnLock = await getFile(VSCODE_REPO, 'yarn.lock', version);
+      if (!yarnLock) return null;
+
+      // Match pattern: electron@<version>:\n  version "<version>"
+      const match = yarnLock.match(/electron@([\d.]+):\s+version\s+"([\d.]+)"/);
+      if (match?.[2]) {
+        console.debug(`Extracted Electron version from yarn.lock: ${match[2]}`);
+        return match[2];
+      }
+      return null;
+    },
+  ];
+
+  return tryStrategies(strategies);
 }
 
 export async function getChromiumVersion(electronVersion: string): Promise<string> {
-  let chromiumVersion = 'Unknown';
+  const strategies: ExtractionStrategy[] = [
+    // Strategy 1: Extract from DEPS file with single-quoted 'chromium_version' pattern
+    async () => {
+      const file = await getFile(ELECTRON_REPO, `DEPS`, `v${electronVersion}`);
+      if (!file) return null;
 
-  const file = await getFile(ELECTRON_REPO, `DEPS`, `v${electronVersion}`);
-  if (!file) return chromiumVersion;
+      const version = file.match(/'chromium_version':\s+'([\d.]+)'/);
+      if (version?.[1]) {
+        console.debug(`Extracted Chromium version from DEPS (pattern 1): ${version[1]}`);
+        return version[1];
+      }
+      return null;
+    },
 
-  const version = file.match(/'chromium_version':\s+'(\d.*)'/);
-  if (version && version.length > 1) chromiumVersion = version[1];
+    // Strategy 2: Extract from DEPS file with double-quoted "chromium_version" pattern
+    async () => {
+      const file = await getFile(ELECTRON_REPO, `DEPS`, `v${electronVersion}`);
+      if (!file) return null;
 
-  return chromiumVersion;
+      const version = file.match(/"chromium_version":\s+"([\d.]+)"/);
+      if (version?.[1]) {
+        console.debug(`Extracted Chromium version from DEPS (pattern 2): ${version[1]}`);
+        return version[1];
+      }
+      return null;
+    },
+
+    // Strategy 3: Extract from DEPS file with alternative format
+    async () => {
+      const file = await getFile(ELECTRON_REPO, `DEPS`, `v${electronVersion}`);
+      if (!file) return null;
+
+      const version = file.match(/['"]chromium_version['"]:\s+['"](\d[\d.]+)['"]/);
+      if (version?.[1]) {
+        console.debug(`Extracted Chromium version from DEPS (pattern 3): ${version[1]}`);
+        return version[1];
+      }
+      return null;
+    },
+  ];
+
+  return tryStrategies(strategies);
 }
 
 export async function getNodeVersion(electronVersion: string): Promise<string> {
-  let nodeVersion = 'Unknown';
+  const strategies: ExtractionStrategy[] = [
+    // Strategy 1: Extract from DEPS file with single-quoted 'node_version' pattern
+    async () => {
+      const file = await getFile(ELECTRON_REPO, `DEPS`, `v${electronVersion}`);
+      if (!file) return null;
 
-  const file = await getFile(ELECTRON_REPO, `DEPS`, `v${electronVersion}`);
-  if (!file) return nodeVersion;
+      const version = file.match(/'node_version':\s+'(v\d[\d.]+)'/);
+      const versionOrSha = version?.[1];
 
-  const version = file.match(/'node_version':\s+'(v\d.*)'/);
-  const versionOrSha = version?.[1];
+      if (versionOrSha?.startsWith('v')) {
+        const nodeVersion = versionOrSha.substring(1);
+        console.debug(`Extracted Node version from DEPS (pattern 1): ${nodeVersion}`);
+        return nodeVersion;
+      }
+      return null;
+    },
 
-  if (versionOrSha?.startsWith('v')) nodeVersion = versionOrSha.substring(1);
+    // Strategy 2: Extract from DEPS file with double-quoted "node_version" pattern
+    async () => {
+      const file = await getFile(ELECTRON_REPO, `DEPS`, `v${electronVersion}`);
+      if (!file) return null;
 
-  return nodeVersion;
+      const version = file.match(/"node_version":\s+"(v\d[\d.]+)"/);
+      const versionOrSha = version?.[1];
+
+      if (versionOrSha?.startsWith('v')) {
+        const nodeVersion = versionOrSha.substring(1);
+        console.debug(`Extracted Node version from DEPS (pattern 2): ${nodeVersion}`);
+        return nodeVersion;
+      }
+      return null;
+    },
+
+    // Strategy 3: Extract from DEPS file with alternative format (no 'v' prefix)
+    async () => {
+      const file = await getFile(ELECTRON_REPO, `DEPS`, `v${electronVersion}`);
+      if (!file) return null;
+
+      const version = file.match(/['"]node_version['"]:\s+['"](\d[\d.]+)['"]/);
+      if (version?.[1]) {
+        console.debug(`Extracted Node version from DEPS (pattern 3): ${version[1]}`);
+        return version[1];
+      }
+      return null;
+    },
+  ];
+
+  return tryStrategies(strategies);
 }
 
 export async function getVscodeReleases(cachedVersions?: string[]) {
