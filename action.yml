@@ -29,5 +29,5 @@ outputs:
     description: Chromium version used by VSCode
 
 runs:
-  using: node20
+  using: node24
   main: dist/index.js
