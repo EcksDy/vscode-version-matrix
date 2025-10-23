@@ -52,10 +52,7 @@ async function tryStrategies(
   for (let i = 0; i < strategies.length; i++) {
     try {
       const result = await strategies[i]();
-      if (result) {
-        console.debug(`Strategy ${i + 1}/${strategies.length} succeeded`);
-        return result;
-      }
+      if (result) return result;
     } catch (error) {
       console.debug(`Strategy ${i + 1}/${strategies.length} failed:`, error);
     }
