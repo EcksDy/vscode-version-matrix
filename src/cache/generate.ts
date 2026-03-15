@@ -35,5 +35,14 @@ async function getVersions() {
     console.debug(`Added ${tag_name} to cache`);
   }
 
-  return versions.sort((a, b) => semver.rcompare(a.version, b.version));
+  return versions.sort((a, b) => {
+    try {
+      return semver.rcompare(a.version, b.version);
+    } catch {
+      const coercedA = semver.coerce(a.version);
+      const coercedB = semver.coerce(b.version);
+      if (coercedA && coercedB) return semver.rcompare(coercedA, coercedB);
+      return -a.version.localeCompare(b.version);
+    }
+  });
 }

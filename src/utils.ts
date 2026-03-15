@@ -228,7 +228,16 @@ export async function getVscodeReleases(cachedVersions?: string[]) {
     }
   }
 
-  return releases.sort((a, b) => semver.rcompare(a.tag_name, b.tag_name));
+  return releases.sort((a, b) => {
+    try {
+      return semver.rcompare(a.tag_name, b.tag_name);
+    } catch {
+      const coercedA = semver.coerce(a.tag_name);
+      const coercedB = semver.coerce(b.tag_name);
+      if (coercedA && coercedB) return semver.rcompare(coercedA, coercedB);
+      return -a.tag_name.localeCompare(b.tag_name);
+    }
+  });
 }
 
 export async function getVscodeRelease(version: string) {
