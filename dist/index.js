@@ -32283,56 +32283,70 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 4554:
+/***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const promises_1 = __nccwpck_require__(3292);
-const path_1 = __importDefault(__nccwpck_require__(1017));
-const semver_1 = __importDefault(__nccwpck_require__(1383));
-const utils_1 = __nccwpck_require__(1314);
+exports.run = run;
+const core = __importStar(__nccwpck_require__(2186));
 const index_json_1 = __importDefault(__nccwpck_require__(8136));
-(async function generateCache() {
-    console.debug(`Generating cache`);
-    const versions = await getVersions();
-    console.debug(`Generated`);
-    const cachePath = path_1.default.join(__dirname, `..`, `src`, `cache`, `index.json`);
-    await (0, promises_1.writeFile)(cachePath, JSON.stringify(versions, undefined, 2));
-    console.debug(`Wrote to ${cachePath}`);
-})();
-async function getVersions() {
-    const cachedVersions = index_json_1.default.map((vscode) => vscode.version);
-    const releases = await (0, utils_1.getVscodeReleases)(cachedVersions);
-    const versions = [...index_json_1.default];
-    for (const release of releases) {
-        const { name, tag_name, created_at } = release;
-        if (cachedVersions.includes(tag_name))
-            continue;
-        const vscodeVersions = await (0, utils_1.getVersionsForVscode)(tag_name);
-        versions.push({
-            ...vscodeVersions,
-            name,
-            created_at,
-        });
-        console.debug(`Added ${tag_name} to cache`);
+const utils_1 = __nccwpck_require__(1314);
+async function run() {
+    const versionInput = core.getInput('version');
+    const targetVersion = versionInput || undefined;
+    const { name, version, electron, node, chromium, created_at } = await getVersionFromCache(targetVersion);
+    core.setOutput('vscode-version-name', name);
+    core.setOutput('vscode-version', version);
+    core.setOutput('electron-version', electron);
+    core.setOutput('node-version', node);
+    core.setOutput('chromium-version', chromium);
+    core.setOutput('released-at', created_at);
+}
+async function getVersionFromCache(targetVersion = 'latest') {
+    const cachedVersion = index_json_1.default?.find(vscode => vscode.version === targetVersion);
+    if (cachedVersion) {
+        console.debug(`Serve from cache`);
+        return cachedVersion;
     }
-    return versions.sort((a, b) => {
-        try {
-            return semver_1.default.rcompare(a.version, b.version);
-        }
-        catch {
-            const coercedA = semver_1.default.coerce(a.version);
-            const coercedB = semver_1.default.coerce(b.version);
-            if (coercedA && coercedB)
-                return semver_1.default.rcompare(coercedA, coercedB);
-            return -a.version.localeCompare(b.version);
-        }
-    });
+    console.debug(`Getting version from VSCode and Electron repos`);
+    const { name, tag_name, created_at } = await (0, utils_1.getVscodeRelease)(targetVersion);
+    const { electron, node, chromium, version } = await (0, utils_1.getVersionsForVscode)(tag_name);
+    return {
+        name,
+        version,
+        electron,
+        node,
+        chromium,
+        created_at,
+    };
 }
 
 
@@ -32684,14 +32698,6 @@ module.exports = require("fs");
 
 /***/ }),
 
-/***/ 3292:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("fs/promises");
-
-/***/ }),
-
 /***/ 3685:
 /***/ ((module) => {
 
@@ -32898,12 +32904,22 @@ module.exports = JSON.parse('[{"version":"1.109.5","electron":"39.3.0","chromium
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(4554);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/**
+ * The entrypoint for the action.
+ */
+const main_1 = __nccwpck_require__(399);
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
+(0, main_1.run)();
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;
