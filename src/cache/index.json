@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.145.3",
+    "electron": "Unknown",
+    "chromium": "Unknown",
+    "node": "Unknown",
+    "name": "1.145.3",
+    "created_at": "2026-11-07T00:56:09Z"
+  },
+  {
     "version": "1.145.2",
     "electron": "Unknown",
     "chromium": "Unknown",
